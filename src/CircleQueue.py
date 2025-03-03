@@ -20,8 +20,13 @@ class CircleQueue:
              
             
     def Dequeue(self):
-        self.queue[self.tail] = None
-        self.tail += 1
+        if self.tail == self.capacity:
+            self.tail = 0
+            self.queue[self.tail] = None
+        else:
+            self.queue[self.tail] = None
+            self.tail += 1
+        return self.queue[self.tail - 1]
 
     def show(self):
               print(self.queue)
@@ -29,19 +34,22 @@ class CircleQueue:
 
 
 cola = CircleQueue(7)
-
 cola.Enqueue(1)
-cola.Enqueue(2)
+cola.Enqueue(1)
+cola.Enqueue(1)
+cola.Enqueue(1)
+cola.Enqueue(1)
+cola.Enqueue(1)
+cola.Enqueue(1)
 cola.Dequeue()
-cola.Enqueue(3)
-cola.Enqueue(5)
-cola.Enqueue(6)
-cola.Enqueue(10)
-cola.Enqueue(11)
-cola.Enqueue(12)
+cola.Dequeue()
+cola.Dequeue()
+cola.Dequeue()
+cola.Dequeue()
 cola.Dequeue()
 cola.Dequeue()
 cola.Enqueue(1)
+cola.Dequeue()
 
 cola.show()
 
