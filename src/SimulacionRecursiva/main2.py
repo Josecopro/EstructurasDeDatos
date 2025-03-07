@@ -239,16 +239,21 @@ class Ecosistema:
                         count_planta += 1
         return (count_depredador > 0 and count_presa > 0) or (count_presa > 0 and count_planta > 0)
 
-    def agregar_organismo(self, organismo):
-        empty_cells = []
-        for i in range(self.n):
-            for j in range(self.n):
-                if self.grid[i][j] is None:
-                    empty_cells.append((i, j))
-        if empty_cells:
-            pos = random.choice(empty_cells)
-            organismo.x, organismo.y = pos
-            self.grid[pos[0]][pos[1]] = organismo
+    def agregar_organismo(self, organismo, empty_cells=None, i=0, j=0):
+        if empty_cells is None:
+            empty_cells = []
+        if i >= self.n:
+            if empty_cells:
+                pos = random.choice(empty_cells)
+                organismo.x, organismo.y = pos
+                self.grid[pos[0]][pos[1]] = organismo
+            return
+        if j >= self.n:
+            self.agregar_organismo(organismo, empty_cells, i + 1, 0)
+            return
+        if self.grid[i][j] is None:
+            empty_cells.append((i, j))
+        self.agregar_organismo(organismo, empty_cells, i, j + 1)
 
 #simulacion 
 
@@ -261,6 +266,9 @@ organismos_iniciales = [
 n = 5
 ecosistema = Ecosistema(n, organismos_iniciales)
 prev_state = ecosistema.get_state()
+
+def esperar_tecla():
+    input("Presiona Enter para avanzar al siguiente ciclo...")
 
 while True:
     if not ecosistema.interacciones_posibles():
@@ -286,6 +294,8 @@ while True:
         break
     prev_state = new_state
     ecosistema.ciclo += 1
+
+    esperar_tecla()
 
 print("Simulación terminada: no hay más movimientos posibles.")
 print("Estado final del ecosistema:")
