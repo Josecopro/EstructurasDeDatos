@@ -33,24 +33,21 @@ class Depredador(Organismo):
             else:
                 move = (self.x, self.y)
         return move
-
-    def buscar_presa_visible(self, grid, n, i=0, j=0, candidatos = []):
-
-        if j == len(grid):
-            return self.buscar_presa_visible(grid, n, i + 1, 0, candidatos)
-        if i == len(grid):
-            if candidatos:
-                return min(candidatos, key=lambda x: x[3])[:2]
-            return None
-        
-        if j != self.y:
-            org = grid[self.x][j]
-            if org is not None and isinstance(org, Presa):
-                candidatos.append(('fila', self.x, j, abs(j - self.y)))
-        if i != self.x:
-            org = grid[i][self.y]
-            if org is not None and isinstance(org, Presa):
-                candidatos.append(('col', i, self.y, abs(i - self.x)))
+    def buscar_presa_visible(self, grid, n, j=0, i=0, candidatos=None):
+        if candidatos is None:
+            candidatos = []
+        if j < n:
+            if j != self.y:
+                org = grid[self.x][j]
+                if org is not None and isinstance(org, Presa):
+                    candidatos.append(('fila', self.x, j, abs(j - self.y)))
+            return self.buscar_presa_visible(grid, n, j + 1, i, candidatos)
+        if i < n:
+            if i != self.x:
+                org = grid[i][self.y]
+                if org is not None and isinstance(org, Presa):
+                    candidatos.append(('col', i, self.y, abs(i - self.x)))
+            return self.buscar_presa_visible(grid, n, j, i + 1, candidatos)
         if candidatos:
             candidato = min(candidatos, key=lambda x: x[3])
             if candidato[0] == 'fila':
@@ -63,7 +60,7 @@ class Depredador(Organismo):
                     return (self.x + 1, self.y)
                 else:
                     return (self.x - 1, self.y)
-        return self.buscar_presa_visible(grid, n, i, j + 1, candidatos)
+        return None
 
     def buscar_presa_recursivo(self, moves, grid, idx):
         if idx >= len(moves):
@@ -228,21 +225,20 @@ class Ecosistema:
                     state.append((i, j, self.grid[i][j].nombre))
         return sorted(state)
 
-    def interacciones_posibles(self):
-        count_depredador = 0
-        count_presa = 0
-        count_planta = 0
-        for i in range(self.n):
-            for j in range(self.n):
-                org = self.grid[i][j]
-                if org is not None:
-                    if isinstance(org, Depredador):
-                        count_depredador += 1
-                    elif isinstance(org, Presa):
-                        count_presa += 1
-                    elif isinstance(org, Planta):
-                        count_planta += 1
-        return (count_depredador > 0 and count_presa > 0) or (count_presa > 0 and count_planta > 0)
+    def interacciones_posibles(self, i=0, j=0, count_depredador=0, count_presa=0, count_planta=0):
+        if i >= self.n:
+            return (count_depredador > 0 and count_presa > 0) or (count_presa > 0 and count_planta > 0)
+        if j >= self.n:
+            return self.interacciones_posibles(i + 1, 0, count_depredador, count_presa, count_planta)
+        org = self.grid[i][j]
+        if org is not None:
+            if isinstance(org, Depredador):
+                count_depredador += 1
+            elif isinstance(org, Presa):
+                count_presa += 1
+            elif isinstance(org, Planta):
+                count_planta += 1
+        return self.interacciones_posibles(i, j + 1, count_depredador, count_presa, count_planta)
 
     def agregar_organismo(self, organismo, empty_cells=None, i=0, j=0):
         if empty_cells is None:
