@@ -34,18 +34,23 @@ class Depredador(Organismo):
                 move = (self.x, self.y)
         return move
 
-    def buscar_presa_visible(self, grid, n):
-        candidatos = []
-        for j in range(n):
-            if j != self.y:
-                org = grid[self.x][j]
-                if org is not None and isinstance(org, Presa):
-                    candidatos.append(('fila', self.x, j, abs(j - self.y)))
-        for i in range(n):
-            if i != self.x:
-                org = grid[i][self.y]
-                if org is not None and isinstance(org, Presa):
-                    candidatos.append(('col', i, self.y, abs(i - self.x)))
+    def buscar_presa_visible(self, grid, n, i=0, j=0, candidatos = []):
+
+        if j == len(grid):
+            return self.buscar_presa_visible(grid, n, i + 1, 0, candidatos)
+        if i == len(grid):
+            if candidatos:
+                return min(candidatos, key=lambda x: x[3])[:2]
+            return None
+        
+        if j != self.y:
+            org = grid[self.x][j]
+            if org is not None and isinstance(org, Presa):
+                candidatos.append(('fila', self.x, j, abs(j - self.y)))
+        if i != self.x:
+            org = grid[i][self.y]
+            if org is not None and isinstance(org, Presa):
+                candidatos.append(('col', i, self.y, abs(i - self.x)))
         if candidatos:
             candidato = min(candidatos, key=lambda x: x[3])
             if candidato[0] == 'fila':
@@ -58,7 +63,7 @@ class Depredador(Organismo):
                     return (self.x + 1, self.y)
                 else:
                     return (self.x - 1, self.y)
-        return None
+        return self.buscar_presa_visible(grid, n, i, j + 1, candidatos)
 
     def buscar_presa_recursivo(self, moves, grid, idx):
         if idx >= len(moves):
