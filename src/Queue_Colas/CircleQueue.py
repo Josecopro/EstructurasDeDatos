@@ -31,6 +31,8 @@ class CircleQueue:
     def show(self):
               print(self.queue)
 
+    def First(self):
+         return self.queue[self.tail]
 
 
 cola = CircleQueue(7)
