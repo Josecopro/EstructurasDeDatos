@@ -4,17 +4,6 @@ from datetime import datetime
 
 
 @dataclass
-class Agent:
-
-    ExperienceLevel: int
-    AgentID: int = int(datetime.now().strftime("%Y%m%d%H%M%S"))
-    State: bool = True
-
-    def __repr__(self):
-
-        return f"El ID del agente es: {self.AgentID}, su experiencia es {self.ExperienceLevel} & su estado es {self.State}"
-
-@dataclass
 class Message:
     InitialMessage: str
     PriorityValue: int = 0
@@ -41,14 +30,6 @@ class Message:
     def ConvertMessage(self) -> None:
         self.InitialMessage = self.InitialMessage.split(" ")
     
-    def CalcMessageLen(self):
-        if self.ExperienceLevel == 1:
-            TimeReduction = 0
-            EstimatedTime = len(self.InitialMessage) / 10 
-        elif self.ExperienceLevel == 1:
-            TimeReduction = 0.75
-        elif self.ExperienceLevel == 2:
-            TimeReduction = 0.5
 
 
     def __lt__(self, other: 'Message') -> bool:
@@ -56,6 +37,31 @@ class Message:
 
     def __repr__(self):
         return str(self.PriorityValue)
+
+@dataclass
+class Agent:
+
+    ExperienceLevel: int
+    AssignedMessage: Message
+    AgentID: int = int(datetime.now().strftime("%Y%m%d%H%M%S"))
+    State: bool = True
+
+    def __repr__(self):
+
+        return f"El ID del agente es: {self.AgentID}, su experiencia es {self.ExperienceLevel} & su estado es {self.State}"
+
+    def CalcMessageLen(self):
+        if self.ExperienceLevel == 0:
+            TimeReduction = 1
+        elif self.ExperienceLevel == 1:
+            TimeReduction = 0.75
+        elif self.ExperienceLevel == 2:
+            TimeReduction = 0.5
+        
+        return (len(self.AssignedMessage.InitialMessage) / 10 + (self.AssignedMessage.CalcPriorityValue() / 2 )) * TimeReduction
+
+
+
 
 @dataclass
 class PriorityQueue:
@@ -94,6 +100,12 @@ def ReadData(PathToTxt):
         print(f"Error: The file at {PathToTxt} was not found.")
     return messages
 
-Ola = ReadData("src/Practicas/test.txt")
+#Ola = ReadData("src/Practicas/test.txt")
 
-print(Ola)
+#print(Ola)
+
+mensaje = Message("Problema y duda sobre la configuración de la base de datos, se recomienda revisar los logs.")
+
+agente = Agent(2, AssignedMessage=mensaje)
+
+print(agente.CalcMessageLen())
