@@ -1,0 +1,20 @@
+Emergencia y fallo crítico en el sistema de producción, se requiere atención inmediata.
+Consulta urgente sobre el proceso de actualización de software.
+Fallo crítico y problema detectado en el servidor principal, se necesita soporte técnico urgente.
+Problema y duda sobre la configuración de la base de datos, se recomienda revisar los logs.
+Duda urgente sobre la configuración de la red, ¿pueden confirmar los parámetros correctos?
+Emergencia y urgente: el sistema de respaldo no está funcionando correctamente.
+Emergencia y problema: pérdida de datos en el sistema de almacenamiento.
+Fallo crítico y emergencia en el módulo de autenticación, los usuarios no pueden iniciar sesión.
+Problema urgente recurrente con la conexión a internet en la oficina principal.
+Urgente y emergencia: el sistema de facturación no está generando reportes.
+Emergencia y consulta: el sistema de monitoreo ha dejado de enviar alertas.
+Consulta y problema sobre la integración de la nueva API con el sistema actual.
+Fallo crítico y urgente en el hardware del servidor, se necesita reemplazo inmediato.
+Problema y duda con el acceso remoto, algunos usuarios no pueden conectarse.
+Urgente y problema: se detectó un comportamiento anómalo en el firewall.
+Emergencia y fallo crítico: el sistema de correo electrónico está fuera de servicio.
+Fallo crítico y problema en el sistema de pagos, los clientes no pueden completar transacciones.
+Problema menor y consulta sobre la visualización de gráficos en el panel de control.
+Urgente y emergencia: se requiere actualización de seguridad en todos los dispositivos.
+Emergencia y fallo crítico: el sistema de respaldo ha fallado durante la copia de seguridad programada.
