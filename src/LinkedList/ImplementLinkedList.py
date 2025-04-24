@@ -17,10 +17,9 @@ class LinkedList:
         if self.Size == 0:
             self.Head = NewNode
             self.Tail = NewNode
-            self.Size += 1
-            return None
-        NewNode.Next = self.Head
-        self.Head = NewNode
+        else:
+            NewNode.Next = self.Head
+            self.Head = NewNode
         self.Size += 1
 
 
@@ -29,10 +28,9 @@ class LinkedList:
         if self.Size == 0:
             self.Head = NewNode
             self.Tail = NewNode
-            self.Size += 1
-            return None
-        self.Tail.Next = NewNode
-        self.Tail = NewNode
+        else:
+            self.Tail.Next = NewNode
+            self.Tail = NewNode
         self.Size += 1
 
 
