@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import time
+import threading
 
 @dataclass
 class Song:
@@ -8,7 +9,7 @@ class Song:
     Artist: str
 
     def __repr__(self):
-        return f"Cancion: {self.Title}, del artista: {self.Artist}, duracion: {self.Duration}"
+        return f"Cancion: {self.Title}, del artista: {self.Artist}, duracion: {self.Duration} segundos"
 
 @dataclass
 class Node:
@@ -130,6 +131,9 @@ class LinkedList:
 @dataclass
 class MediaPlayer:
     spotify = LinkedList()
+    IsPlaying = False
+    stop_event = threading.Event()
+    skip_event = threading.Event()
 
     def AddSong(self, song: Song):
         if song.Title in self.spotify:
@@ -139,8 +143,6 @@ class MediaPlayer:
     def RemoveSong(self, song: Song):
         counter = 0 
         if song in self.spotify:
-            print("cabeza", self.spotify.Head.Value)
-            RealHead = self.spotify.Head
             SecHead = self.spotify.Head
             if SecHead.Value.Title == song:
                 self.spotify.RemoveFirst()
@@ -154,21 +156,44 @@ class MediaPlayer:
         print("no se encontro la cancion: ", song)
 
     def ActualSong(self):
-        print("DEBUG: ",self.spotify.Head.Value )
         return self.spotify.Head.Value
 
     def SkipSong(self):
-        self.spotify.Head = self.spotify.Head.Next
+        if self.spotify.Size > 1:
+            self.spotify.Head = self.spotify.Head.Next
+            self.skip_event.set()  
+        else:
+            print("No hay más canciones para saltar.")
 
     def StartPlaylist(self):
-        CurrentlyPlaying = self.spotify.Head
+        self.IsPlaying = True
+        self.stop_event.clear()
+        self.skip_event.clear()
 
-        while self.spotify.Size != 0:
-            print(f"Reproduciendo actualmente: {CurrentlyPlaying.Value}")
-            time.sleep(CurrentlyPlaying.Value.Duration)
-            CurrentlyPlaying = CurrentlyPlaying.Next
-            
-        print("DEBUG: Playlist finisged")
+        def play_songs():
+            while self.IsPlaying and self.spotify.Size > 0:
+                current_song = self.spotify.Head.Value
+                print(f"Reproduciendo actualmente: {current_song}")
+                start_time = time.time()
+
+                while time.time() - start_time < current_song.Duration:
+                    if self.stop_event.is_set():
+                        print("Reproducción detenida.")
+                        return
+                    if self.skip_event.is_set():
+                        self.skip_event.clear()
+                        break
+                    time.sleep(1)
+
+                self.spotify.Head = self.spotify.Head.Next
+
+            print("DEBUG: Playlist terminada o reproducción detenida.")
+
+        threading.Thread(target=play_songs, daemon=True).start()
+
+    def StopPlaylist(self):
+        self.IsPlaying = False
+        self.stop_event.set()
 
     def __repr__(self):
         playlist = "\n".join([f"{idx + 1}. {song.Title} - {song.Artist} ({song.Duration}s)" 
@@ -179,24 +204,17 @@ class MediaPlayer:
             "=========================\n"
             f"Playlist:\n{playlist}\n"
             "=========================\n"
-            f"Total Songs: {self.spotify.Size}\n"
+            f"Total de canciones: {self.spotify.Size}\n"
             "========================="
         )
-            
-    def LastSong(self):
-        self.spotify.Head = self.spotify.Head.Prev
 
 @dataclass
 class Controler:
     OwnMediaPlayer = MediaPlayer()
 
     def SelectSong(self):
-        Title = str(input("Ingrese el titulo de la cancion: "))
-        Duration = int(input("Ingrese la duración de la canción: "))
-        Artist = str(input("Ingrese el artista de la canción: "))
-        self.OwnMediaPlayer.AddSong(Song(Duration, Title, Artist))
+        Flag = "si"
         while True:
-            Flag = str(input("Desea Ingresar mas canciones? \n Si / No : "))
             if Flag.lower() == "si":
                 Title = str(input("Ingrese el titulo de la cancion: "))
                 Duration = int(input("Ingrese la duración de la canción: "))
@@ -204,40 +222,53 @@ class Controler:
                 self.OwnMediaPlayer.AddSong(Song(Duration, Title, Artist))
             else: 
                 break
-    
+            Flag = str(input("Desea Ingresar mas canciones? \n Si / No : "))
+
     def StartPlaying(self):
         if self.OwnMediaPlayer.spotify.Size != 0:
             self.OwnMediaPlayer.StartPlaylist()
-        print("No existen canciones agregadas")
+        else:
+            print("No existen canciones agregadas")
 
-    def CurrentSong(Self):
-        if Self.OwnMediaPlayer.spotify.Size != 0:
-            Self.OwnMediaPlayer.ActualSong()
-        print("No existen canciones agregadas")
+    def StopPlaying(self):
+        self.OwnMediaPlayer.StopPlaylist()
 
+    def SkipCurrentSong(self):
+        self.OwnMediaPlayer.SkipSong()
+
+    def CurrentSong(self):
+        if self.OwnMediaPlayer.spotify.Size != 0:
+            print(self.OwnMediaPlayer.ActualSong())
+        else:
+            print("No existen canciones agregadas")
 
     def PrincipalMenu(self):
         print("Bienvenido al reproductor de música, Seleccione alguna de las opciones: ")
-        print("1. Ingrese canciones \n 2. Revise la playlist \n 3. Elimine alguna canción \n 4. Revise la cancion actual \n 5. Salir del reproductor")
         
         while True:
-            Selector = int(input(""))
+            print("1. Ingrese canciones \n2. Revise la playlist \n3. Elimine alguna canción \n4. Revise la canción actual \n5. Reproducir playlist \n6. Detener reproducción \n7. Saltar canción \n8. Salir del reproductor")
+            Selector = int(input("Seleccione una opcion: "))
 
-            if Selector > 0 and Selector < 4:
-                if Selector == 1:
-                    self.SelectSong()
-                elif Selector == 2:
-                    print(self.OwnMediaPlayer)
-                elif Selector == 3:
-                    SongTitle = str(input("Ingrese el título de la canción a eliminar: "))
-                    self.OwnMediaPlayer.RemoveSong(SongTitle)
-                elif Selector == 4:
-                    self.CurrentSong()
-                elif Selector == 5:
-                    break
-
-
-
+            if Selector == 1:
+                self.SelectSong()
+            elif Selector == 2:
+                print(self.OwnMediaPlayer)
+            elif Selector == 3:
+                SongTitle = str(input("Ingrese el título de la canción a eliminar: "))
+                self.OwnMediaPlayer.RemoveSong(SongTitle)
+            elif Selector == 4:
+                self.CurrentSong()
+            elif Selector == 5:
+                self.StartPlaying()
+            elif Selector == 6:
+                self.StopPlaying()
+            elif Selector == 7:
+                self.SkipCurrentSong()
+            elif Selector == 8:
+                self.StopPlaying()
+                break
+            else:
+                print("Opción no válida. Intente de nuevo.")
 
 SpotifyGratis = Controler()
 
