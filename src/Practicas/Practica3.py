@@ -156,7 +156,7 @@ class MediaPlayer:
             return f"La cancion: {song.Title} ya esta en la playlist"
         self.spotify.AppendFirst(song)
 
-    def RemoveSong(self, song: Song):
+    def RemoveSong(self, song: str):
         counter = 0 
         if song in self.spotify:
             SecHead = self.spotify.Head
@@ -171,6 +171,10 @@ class MediaPlayer:
                 counter += 1
         print("no se encontro la cancion: ", song)
 
+    def RemovePoorArtist(self, PoorArtist):
+        for song in self.spotify:
+            if song.Artist == PoorArtist:
+                self.RemoveSong(song.Title)
     def ActualSong(self):
         return self.spotify.Head.Value
     
@@ -255,6 +259,20 @@ class MediaPlayer:
         threading.Thread(target=play_songs, daemon=True).start()
 
 
+
+    def __repr__(self):
+        playlist = "\n".join([f"{idx + 1}. {song.Title} - {song.Artist} ({song.Duration}s)" 
+                    for idx, song in enumerate(self.spotify)])
+        return (
+            "=========================\n"
+            "      Media Player       \n"
+            "=========================\n"
+            f"Playlist:\n{playlist}\n"
+            "=========================\n"
+            f"Total Songs: {self.spotify.Size}\n"
+            "========================="
+        )
+
 @dataclass
 class Controler:
     OwnMediaPlayer = MediaPlayer()                
@@ -327,6 +345,24 @@ class Controler:
         self.OwnMediaPlayer.AddSubPlaylistToMain(subplaylist_name)
     
 
+    def GetLowestSellingArtist(self):
+        Artists = {}
+        auxcounter = 0 
+        for song in self.OwnMediaPlayer.spotify:
+            if song.Artist in Artists:
+                Artists[song.Artist] += 1
+            else:
+                Artists[song.Artist] = 1
+                auxcounter += 1
+        Lowest = 9999 
+        for artist in Artists:
+            if Artists[artist] < Lowest:
+                Lowest = Artists[artist]
+                LowestArtist = artist
+        return LowestArtist
+            
+
+
     def PrincipalMenu(self):
         print("Bienvenido al reproductor de música, Seleccione alguna de las opciones: ")
         
@@ -358,6 +394,9 @@ class Controler:
                 self.AddSubPlaylistToMain()
             elif Selector == 12:
                 break
+            elif Selector == 13:
+                BadArtist = self.GetLowestSellingArtist()
+                self.OwnMediaPlayer.RemovePoorArtist(BadArtist)
             else:
                 print("Opción no válida. Intente de nuevo.")
 
