@@ -173,25 +173,6 @@ class MediaPlayer:
 
     def ActualSong(self):
         return self.spotify.Head.Value
-    
-    def AddSubPlaylistToMain(self, subplaylist_name):
-        """Añade las canciones de una subplaylist a la playlist principal"""
-        if subplaylist_name not in self.subplaylists:
-            print(f"No existe una subplaylist llamada '{subplaylist_name}'")
-            return
-
-        subplaylist = self.subplaylists[subplaylist_name]
-        current_node = subplaylist.playlist.Head
-        if not current_node:
-            print(f"La subplaylist '{subplaylist_name}' está vacía.")
-            return
-
-        for _ in range(subplaylist.playlist.Size):
-            self.spotify.AppendLast(current_node.Value)
-            current_node = current_node.Next
-
-        print(f"Subplaylist '{subplaylist_name}' añadida a la playlist principal como canciones normales.")
-
 
     def SkipSong(self):
         if self.spotify.Size > 1:
@@ -226,6 +207,7 @@ class MediaPlayer:
         
         subplaylist_marker = Song(0, f"SUBPLAYLIST:{subplaylist_name}", "")
         self.spotify.AppendLast(subplaylist_marker)
+        self.GetSongPos(subplaylist_marker)
         print(f"Subplaylist '{subplaylist_name}' añadida a la playlist principal")
     
     def StartPlaylist(self, IsRandom: bool):
@@ -233,27 +215,44 @@ class MediaPlayer:
         self.stop_event.clear()
         self.skip_event.clear()
 
-        def play_songs():
-            while self.IsPlaying and self.spotify.Size > 0:
-                current_song = self.spotify.Head.Value
-                print("=====================================")
-                print(f"\n Reproduciendo actualmente: {current_song} \n")
-                print("=====================================")
-                start_time = time.time()
+        if IsRandom:
+            def play_songs():
+                while self.IsPlaying and self.spotify.Size > 0:
+                    current_song = self.Randomize()
+                    print("=====================================")
+                    print(f"\n Reproduciendo actualmente: {current_song} \n")
+                    print("=====================================")
+                    start_time = time.time()
 
-                while time.time() - start_time < current_song.Duration:
-                    if self.stop_event.is_set():
-                        print("Reproducción detenida.")
-                        return
-                    if self.skip_event.is_set():
-                        self.skip_event.clear()
-                        break
-                    time.sleep(1)
+                    while time.time() - start_time < current_song.Duration:
+                        if self.stop_event.is_set():
+                            print("Reproducción detenida.")
+                            return
+                        if self.skip_event.is_set():
+                            self.skip_event.clear()
+                            break
+                        time.sleep(1)
+        else:
+            def play_songs():
+                while self.IsPlaying and self.spotify.Size > 0:
+                    current_song = self.spotify.Head.Value
+                    print("=====================================")
+                    print(f"\n Reproduciendo actualmente: {current_song} \n")
+                    print("=====================================")
+                    start_time = time.time()
+                    while time.time() - start_time < current_song.Duration:
+                        if self.stop_event.is_set():
+                            print("Reproducción detenida.")
+                            return
+                        if self.skip_event.is_set():
+                            self.skip_event.clear()
+                            break
+                        time.sleep(1)
+                    self.spotify.Head = self.spotify.Head.Next
 
-                self.spotify.Head = self.spotify.Head.Next
+            print("DEBUG: Playlist terminada o reproducción detenida.")
 
         threading.Thread(target=play_songs, daemon=True).start()
-
 
 @dataclass
 class Controler:
