@@ -76,6 +76,7 @@ class Space:
     FinishLine: FinishLine
     NumberOfPlayers: int
     NumberOfWalls: int
+    Trash: int
     Grid: list[list] = field(default_factory=list)
     PlayerList: list[Player] = field(default_factory=list)
     Iteration: int = 0 
@@ -86,9 +87,12 @@ class Space:
         self.CreatePlayers()
         for Player in self.PlayerList:
             self.Grid[Player.Position[0]][Player.Position[1]] = Player
-            self.MovePlayers()
         for wall in self.CreateWalls():
             self.Grid[wall.Position[0]][wall.Position[1]] = wall
+        
+        for trash in self.CreateTrash():
+            self.Grid[trash.Position[0]][trash.Position[1]] = trash
+
 
     def UpdateFinishLine(self, NewPos:list[int]):
         self.FinishLine.Position = NewPos
@@ -116,6 +120,16 @@ class Space:
                 if (pos != self.FinishLine.Position and all(player.Position != pos for player in self.PlayerList)):
                     WallsList.append ( Walls(Position=pos))
         return WallsList
+
+    def CreateTrash(self) -> list[Traps | Retarder]:
+        TrashList: list = []
+        PosibleItem: list = [Traps, Retarder]
+        for _ in range(self.Trash):
+                pos = [random.randint(0, self.GridSize-1), random.randint(0, self.GridSize-1)]
+                if (pos != self.FinishLine.Position and all(player.Position != pos for player in self.PlayerList)):
+                    RandomItem = random.choice(PosibleItem)
+                    TrashList.append ( RandomItem(Position=pos))
+        return TrashList
     
     def AddWall(self, WallPos:list[int]):
         if (WallPos != self.FinishLine.Position and all(player.Position != WallPos for player in self.PlayerList)):
@@ -163,7 +177,7 @@ class Space:
 
 
 
-espacio = Space(10, FinishLine(Position=[7,7]), 2, 15)
+espacio = Space(10, FinishLine(Position=[7,7]), 2, 15, 5)
 
 espacio.ShowGrid()
 
